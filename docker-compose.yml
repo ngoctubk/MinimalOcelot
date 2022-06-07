@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  seq:
+    image: datalust/seq:latest
+    container_name: ocelot_seq
+    ports:
+      - 5342:80
+      - 5341:5341
+    environment:
+      ACCEPT_EULA: "Y"
+  consul:
+    image: consul:latest
+    container_name: ocelot_consul
+    ports:
+      - 8500:8500
+      - 8600:8600
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "6831:6831/udp"
+      - "5778:5778"

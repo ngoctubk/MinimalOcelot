@@ -1,0 +1,74 @@
+{
+  "Routes": [
+    {
+      "HttpHandlerOptions": {
+        "UseTracing": true
+      },
+      "DownstreamPathTemplate": "/api/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5087
+        }
+      ],
+      "UpstreamPathTemplate": "/api1/{everything}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "IdpBearer",
+        "AllowedScopes": [ "api1" ]
+      }
+    },
+    {
+      "HttpHandlerOptions": {
+        "UseTracing": true
+      },
+      "DownstreamPathTemplate": "/WeatherForecast",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5297
+        }
+      ],
+      "UpstreamPathTemplate": "/weather2",
+      "UpstreamHttpMethod": [ "Get" ]
+    },
+    {
+      "HttpHandlerOptions": {
+        "UseTracing": true
+      },
+      "DownstreamPathTemplate": "/todos/{id}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "jsonplaceholder.typicode.com",
+          "Port": 443
+        }
+      ],
+      "UpstreamPathTemplate": "/posts/{id}",
+      "UpstreamHttpMethod": [
+        "Get"
+      ]
+    }
+  ],
+  "GlobalConfiguration": {    
+    "RequestIdKey": "OcRequestId",
+    "RateLimitOptions": {
+      "ClientWhitelist": [],
+      "EnableRateLimiting": true,
+      "ClientIdHeader": "ClientId",
+      "DisableRateLimitHeaders": false,
+      "HttpStatusCode": 429,
+      "Period": "1s",
+      "PeriodTimespan": 1,
+      "Limit": 2
+    },
+    "FileCacheOptions": { "TtlSeconds": 15 },
+    "QoSOptions": {
+      "ExceptionsAllowedBeforeBreaking": 3,
+      "DurationOfBreak": 1000,
+      "TimeoutValue": 10000
+    }
+  }
+}
