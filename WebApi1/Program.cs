@@ -4,77 +4,112 @@ using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
+using Serilog;
+using Serilog.Enrichers.Span;
+
 using ServiceDiscovery;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+                    .WriteTo.Console()
+                    .CreateBootstrapLogger();
 
-// Add services to the container.
+Log.Information("Starting up");
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-builder.Services.AddHttpClient("WebAPI2", httpClient =>
+try
 {
-    httpClient.BaseAddress = new Uri("http://localhost:5297");
-});
 
-string identityProviderHost = builder.Configuration.GetValue<string>("IdentityProviderHost");
-builder.Services.AddAuthentication("Bearer")
-                .AddJwtBearer("Bearer", options =>
-                {
-                    options.Authority = identityProviderHost;
+    var builder = WebApplication.CreateBuilder(args);
 
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateAudience = false
-                    };
-                });
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("ApiScope", policy =>
+    // Add services to the container.
+    builder.Host.UseSerilog((ctx, lc) =>
     {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", "api1");
+        string applicationName = builder.Configuration.GetValue<string>("ApplicationName");
+        lc.ReadFrom.Configuration(ctx.Configuration)
+           .Enrich.FromLogContext()
+           .Enrich.WithClientIp()
+           .Enrich.WithClientAgent()
+           .Enrich.WithSpan()
+           .Enrich.WithProperty("ApplicationName", applicationName);
     });
-});
 
-builder.Services.AddHealthChecks();
-builder.Services.AddConsul(builder.Configuration);
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
 
-builder.Services.AddOpenTelemetryTracing((builder) =>
-{
-    builder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("WebAPI1"))
-        .AddAspNetCoreInstrumentation(options =>
+    builder.Services.AddHttpClient("WebAPI2", httpClient =>
+    {
+        httpClient.BaseAddress = new Uri("http://localhost:5297");
+    });
+
+    string identityProviderHost = builder.Configuration.GetValue<string>("IdentityProviderHost");
+    builder.Services.AddAuthentication("Bearer")
+                    .AddJwtBearer("Bearer", options =>
+                    {
+                        options.Authority = identityProviderHost;
+
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateAudience = false
+                        };
+                    });
+    builder.Services.AddAuthorization(options =>
+    {
+        options.AddPolicy("ApiScope", policy =>
         {
-            options.Filter = httpContext =>
-            {
-                return !httpContext.Request.Path.Value?.Contains("/HealthCheck") ?? true;
-            };
-        })
-        .AddHttpClientInstrumentation()
-        .AddJaegerExporter(c =>
-        {
-            c.AgentPort = 6831;
-            c.AgentHost = "localhost";
+            policy.RequireAuthenticatedUser();
+            policy.RequireClaim("scope", "api1");
         });
-});
+    });
 
-var app = builder.Build();
+    builder.Services.AddHealthChecks();
+    builder.Services.AddConsul(builder.Configuration);
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    builder.Services.AddOpenTelemetryTracing((builder) =>
+    {
+        builder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("WebAPI1"))
+            .AddAspNetCoreInstrumentation(options =>
+            {
+                options.Filter = httpContext =>
+                {
+                    return !httpContext.Request.Path.Value?.Contains("/HealthCheck") ?? true;
+                };
+            })
+            .AddHttpClientInstrumentation()
+            .AddJaegerExporter(c =>
+            {
+                c.AgentPort = 6831;
+                c.AgentHost = "localhost";
+            });
+    });
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseSerilogRequestLogging();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapHealthChecks(app.Configuration.GetValue<string>("ServiceDiscovery:HealthCheckPath"));
+    app.UseConsulRegisterService();
+
+    app.MapControllers().RequireAuthorization("ApiScope");
+
+    app.Run();
+
 }
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapHealthChecks(app.Configuration.GetValue<string>("ServiceDiscovery:HealthCheckPath"));
-app.UseConsulRegisterService();
-
-app.MapControllers().RequireAuthorization("ApiScope");
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Unhandled exception");
+}
+finally
+{
+    Log.Information("Shut down complete");
+    Log.CloseAndFlush();
+}

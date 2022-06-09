@@ -22,6 +22,7 @@ using OpenTracing;
 using OpenTracing.Util;
 
 using Serilog;
+using Serilog.Enrichers.Span;
 
 Log.Logger = new LoggerConfiguration()
                     .WriteTo.Console()
@@ -34,17 +35,14 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Add services to the container.
-    builder.Logging.Configure(options =>
-    {
-        options.ActivityTrackingOptions = ActivityTrackingOptions.SpanId
-                                            | ActivityTrackingOptions.TraceId
-                                            | ActivityTrackingOptions.ParentId;
-    });
     builder.Host.UseSerilog((ctx, lc) =>
     {
         string applicationName = builder.Configuration.GetValue<string>("ApplicationName");
         lc.ReadFrom.Configuration(ctx.Configuration)
            .Enrich.FromLogContext()
+           .Enrich.WithClientIp()
+           .Enrich.WithClientAgent()
+           .Enrich.WithSpan()
            .Enrich.WithProperty("ApplicationName", applicationName);
     });
 
