@@ -1,10 +1,3 @@
-using Jaeger;
-using Jaeger.Reporters;
-using Jaeger.Samplers;
-using Jaeger.Senders;
-using Jaeger.Senders.Thrift;
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 using Ocelot.Administration;
@@ -13,13 +6,9 @@ using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Consul;
 using Ocelot.Provider.Polly;
-using Ocelot.Tracing.OpenTracing;
 
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-
-using OpenTracing;
-using OpenTracing.Util;
 
 using Serilog;
 using Serilog.Enrichers.Span;

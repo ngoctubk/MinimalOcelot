@@ -1,6 +1,16 @@
 version: '3.4'
 
 services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: webapi1-mssql
+    ports:
+      - 1433:1433
+    volumes:
+      - webapi1-volume:/var/opt/mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=abc@1234
   seq:
     image: datalust/seq:latest
     container_name: ocelot_seq
@@ -21,3 +31,6 @@ services:
       - "16686:16686"
       - "6831:6831/udp"
       - "5778:5778"
+volumes:
+  webapi1-volume:
+    name: webapi1-volume

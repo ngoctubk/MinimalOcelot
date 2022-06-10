@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 using System.Text.Json;
 
@@ -12,15 +12,19 @@ namespace WebApi1.Controllers
     public class ExternalCallController : ControllerBase
     {
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ApplicationDbContext _dbContext;
 
-        public ExternalCallController(IHttpClientFactory httpClientFactory)
+        public ExternalCallController(IHttpClientFactory httpClientFactory, ApplicationDbContext dbContext)
         {
             _httpClientFactory = httpClientFactory;
+            this._dbContext = dbContext;
         }
 
         [HttpGet(Name = "GetExternalWeatherForecast")]
         public async Task<IEnumerable<WeatherForecast>> Get()
         {
+            var books = await _dbContext.Books.ToListAsync();
+
             var httpClient = _httpClientFactory.CreateClient("WebAPI2");
 
             var httpResponseMessage = await httpClient.GetAsync("WeatherForecast");

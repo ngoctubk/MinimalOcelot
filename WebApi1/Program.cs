@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 using OpenTelemetry.Resources;
@@ -8,6 +8,8 @@ using Serilog;
 using Serilog.Enrichers.Span;
 
 using ServiceDiscovery;
+
+using WebApi1;
 
 Log.Logger = new LoggerConfiguration()
                     .WriteTo.Console()
@@ -31,6 +33,9 @@ try
            .Enrich.WithSpan()
            .Enrich.WithProperty("ApplicationName", applicationName);
     });
+
+    builder.Services.AddDbContext<ApplicationDbContext>(options => 
+                options.UseSqlServer(builder.Configuration.GetConnectionString("TestConnection")));    
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
@@ -75,6 +80,7 @@ try
                 };
             })
             .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation(options => options.SetDbStatementForText = true)
             .AddJaegerExporter(c =>
             {
                 c.AgentPort = 6831;
@@ -84,6 +90,12 @@ try
 
     var app = builder.Build();
 
+    using (var scope = app.Services.CreateScope())
+    {
+        using var identityContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        identityContext.Database.EnsureCreated();
+    }
+
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
@@ -91,6 +103,7 @@ try
         app.UseSwaggerUI();
     }
 
+    
     app.UseSerilogRequestLogging();
 
     app.UseAuthentication();
