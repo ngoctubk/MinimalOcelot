@@ -14,11 +14,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{24E67B48-49C5-43F8-B467-2F22A4863D61}"
 	ProjectSection(SolutionItems) = preProject
 		docker-compose.yml = docker-compose.yml
+		prometheus.yml = prometheus.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceDiscovery", "ServiceDiscovery\ServiceDiscovery.csproj", "{C871D12E-2BCD-4038-98E2-389BF2A78C86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsumerApplication1", "ConsumerApplication1\ConsumerApplication1.csproj", "{E2F66514-7DB4-484D-8773-BD6AE1D10E6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsumerApplication1", "ConsumerApplication1\ConsumerApplication1.csproj", "{E2F66514-7DB4-484D-8773-BD6AE1D10E6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -10,6 +10,8 @@ using Ocelot.Provider.Polly;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
+using Prometheus;
+
 using Serilog;
 using Serilog.Enrichers.Span;
 
@@ -35,9 +37,6 @@ try
            .Enrich.WithProperty("ApplicationName", applicationName);
     });
 
-    string environmentName = builder.Environment.EnvironmentName;
-    builder.Configuration.AddJsonFile($"ocelot.{environmentName}.json", true, true);
-
     //builder.Services.AddSingleton<ITracer>(sp =>
     //{
     //    var loggerFactory = sp.GetService<ILoggerFactory>();
@@ -54,6 +53,8 @@ try
     //    return tracer;
     //});
 
+    string environmentName = builder.Environment.EnvironmentName;
+    builder.Configuration.AddJsonFile($"ocelot.{environmentName}.json", true, true);
     builder.Services.AddOcelot()
         .AddCacheManager(x => x.WithDictionaryHandle())
         .AddPolly()
@@ -70,15 +71,18 @@ try
             };
         });
 
-    builder.Services.AddOpenTelemetryTracing((builder) =>
+    builder.Services.AddOpenTelemetryTracing((traceBuilder) =>
     {
-        builder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("MinimalOcelot"))
+        string applicationName = builder.Configuration.GetValue<string>("ApplicationName");
+        string jaegerHost = builder.Configuration.GetValue<string>("JaegerAddress:Host");
+        int jaegerPort = builder.Configuration.GetValue<int>("JaegerAddress:Port");
+        traceBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(applicationName))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
             .AddJaegerExporter(c =>
             {
-                c.AgentPort = 6831;
-                c.AgentHost = "localhost";
+                c.AgentPort = jaegerPort;
+                c.AgentHost = jaegerHost;
             });
     });
 
@@ -97,7 +101,7 @@ try
 
     // Configure the HTTP request pipeline.
 
-    app.UseHttpsRedirection();
+    //app.UseHttpsRedirection();
 
     app.UseSerilogRequestLogging();
 
@@ -110,6 +114,10 @@ try
                                 });
                             });
     app.UseAuthentication();
+
+    app.UseMetricServer();
+    app.UseHttpMetrics();
+
     app.UseOcelot().Wait();
 
     app.Run();

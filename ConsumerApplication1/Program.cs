@@ -21,15 +21,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddOpenTelemetryTracing((builder) =>
+builder.Services.AddOpenTelemetryTracing((tracerBuilder) =>
 {
-    builder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Consumer1"))
+    string jaegerHost = builder.Configuration.GetValue<string>("JaegerAddress:Host");
+    int jaegerPort = builder.Configuration.GetValue<int>("JaegerAddress:Port");
+    tracerBuilder.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Consumer1"))
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
         .AddJaegerExporter(c =>
         {
-            c.AgentPort = 6831;
-            c.AgentHost = "localhost";
+            c.AgentPort = jaegerPort;
+            c.AgentHost = jaegerHost;
         });
 });
 

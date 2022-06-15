@@ -27,10 +27,33 @@ services:
       - 8600:8600
   jaeger:
     image: jaegertracing/all-in-one:latest
+    container_name: jaeger
     ports:
       - "16686:16686"
       - "6831:6831/udp"
       - "5778:5778"
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitor-net
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+    ports:
+      - 3000:3000
+    networks:
+      - monitor-net
 volumes:
   webapi1-volume:
     name: webapi1-volume
+networks:
+  monitor-net:
+    driver: bridge

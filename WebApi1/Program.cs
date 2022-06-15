@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
+using Prometheus;
+
 using Serilog;
 using Serilog.Enrichers.Span;
 
@@ -67,6 +69,7 @@ try
     });
 
     builder.Services.AddHealthChecks();
+
     builder.Services.AddConsul(builder.Configuration);
 
     builder.Services.AddOpenTelemetryTracing((builder) =>
@@ -110,7 +113,11 @@ try
     app.UseAuthorization();
 
     app.MapHealthChecks(app.Configuration.GetValue<string>("ServiceDiscovery:HealthCheckPath"));
+
     app.UseConsulRegisterService();
+
+    app.UseMetricServer();
+    app.UseHttpMetrics();
 
     app.MapControllers().RequireAuthorization("ApiScope");
 

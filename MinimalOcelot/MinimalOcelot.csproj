@@ -23,6 +23,7 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.4" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.4" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc9.4" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="6.0.0" />
     <PackageReference Include="serilog.aspnetcore" Version="5.0.0" />
     <PackageReference Include="Serilog.Enrichers.ClientInfo" Version="1.1.4" />
     <PackageReference Include="Serilog.Enrichers.Span" Version="2.3.0" />
