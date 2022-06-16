@@ -7,7 +7,7 @@ services:
     ports:
       - 1433:1433
     volumes:
-      - webapi1-volume:/var/opt/mssql
+      - webapi1-mssql-volume:/var/opt/mssql
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=abc@1234
@@ -52,8 +52,8 @@ services:
     networks:
       - monitor-net
 volumes:
-  webapi1-volume:
-    name: webapi1-volume
+  webapi1-mssql-volume:
+    name: webapi1_mssql-volume
 networks:
   monitor-net:
     driver: bridge
