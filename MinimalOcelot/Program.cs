@@ -28,13 +28,11 @@ try
     // Add services to the container.
     builder.Host.UseSerilog((ctx, lc) =>
     {
-        string applicationName = builder.Configuration.GetValue<string>("ApplicationName");
         lc.ReadFrom.Configuration(ctx.Configuration)
            .Enrich.FromLogContext()
            .Enrich.WithClientIp()
            .Enrich.WithClientAgent()
-           .Enrich.WithSpan()
-           .Enrich.WithProperty("ApplicationName", applicationName);
+           .Enrich.WithSpan();
     });
 
     //builder.Services.AddSingleton<ITracer>(sp =>
@@ -67,6 +65,7 @@ try
             options.RequireHttpsMetadata = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
+                ValidateIssuer = false,
                 ValidateAudience = true,
             };
         });
@@ -93,7 +92,8 @@ try
             options.RequireHttpsMetadata = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateAudience = true,
             };
         });
 
