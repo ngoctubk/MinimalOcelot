@@ -66,7 +66,7 @@ try
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = false,
-                ValidateAudience = true,
+                ValidateAudience = false,
             };
         });
 
@@ -93,7 +93,7 @@ try
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = false,
-                ValidateAudience = true,
+                ValidateAudience = false,
             };
         });
 
