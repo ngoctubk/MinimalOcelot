@@ -51,25 +51,6 @@ try
     //    return tracer;
     //});
 
-    string environmentName = builder.Environment.EnvironmentName;
-    builder.Configuration.AddJsonFile($"ocelot.{environmentName}.json", true, true);
-    builder.Services.AddOcelot()
-        .AddCacheManager(x => x.WithDictionaryHandle())
-        .AddPolly()
-        .AddConsul()
-        //.AddOpenTracing()
-        .AddAdministration(builder.Configuration.GetValue<string>("AdministrationPath"), options =>
-        {
-            options.Authority = builder.Configuration.GetValue<string>("AdministrationAuthentication:Authority");
-            options.Audience = builder.Configuration.GetValue<string>("AdministrationAuthentication:Audience");
-            options.RequireHttpsMetadata = false;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-            };
-        });
-
     builder.Services.AddOpenTelemetryTracing((traceBuilder) =>
     {
         string applicationName = builder.Configuration.GetValue<string>("ApplicationName");
@@ -92,8 +73,43 @@ try
             options.RequireHttpsMetadata = false;
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
+                ValidateAudience = false
+            };
+            //options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents()
+            //{
+            //    OnAuthenticationFailed = async ctx =>
+            //    {
+            //        var c = ctx.Response;
+            //        Log.Information("OnAuthenticationFailed");
+            //    },
+            //    OnTokenValidated = async ctx =>
+            //    {
+            //        var a = ctx.Response;
+            //        Log.Information("OnTokenValidated");
+            //    },
+            //    OnMessageReceived = async ctx =>
+            //    {
+            //        var b = ctx.Response;
+            //        Log.Information("OnMessageReceived");
+            //    }
+            //};
+        });
+
+    string environmentName = builder.Environment.EnvironmentName;
+    builder.Configuration.AddJsonFile($"ocelot.{environmentName}.json", true, true);
+    builder.Services.AddOcelot()
+        .AddCacheManager(x => x.WithDictionaryHandle())
+        .AddPolly()
+        .AddConsul()
+        //.AddOpenTracing()
+        .AddAdministration(builder.Configuration.GetValue<string>("AdministrationPath"), options =>
+        {
+            options.Authority = builder.Configuration.GetValue<string>("AdministrationAuthentication:Authority");
+            options.Audience = builder.Configuration.GetValue<string>("AdministrationAuthentication:Audience");
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false
             };
         });
 
